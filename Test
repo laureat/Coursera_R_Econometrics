@@ -1,0 +1,92 @@
+library("memisc") # две и более регрессий в одной табличке
+library("dplyr") # манипуляции с данными
+library("psych") # описательные статистики
+library("lmtest") # тестирование гипотез в линейных моделях
+library("sjPlot") # графики
+library("sgof")
+library("vcd")
+library("grid")
+library("ggplot2") # графики
+library("foreign") # загрузка данных в разных форматах
+library("car")
+library("hexbin") # графики
+library("rlms") # загрузка данных в формате rlms (spss)
+
+library("devtools")
+library("pander")
+library("knitr")
+
+df<-diamonds
+glimpse(df)   # glimpse is from dplyr lib
+help(diamonds)
+
+model=lm(data=df,price~log(carat))
+model
+glimpse(model) # Don't use with model
+summary(model)
+
+
+model_1=lm(data=df,price~log(carat)+x)
+summary(model_1)
+
+model_2=lm(data=df,price~carat)
+summary(model_2)
+
+# f<- mutate_each(df,"factor",walk,brick,floor,code)
+# glimpse(f)
+
+df$fair <- memisc::recode(df$cut,1<-'Fair',0<-'Good',0<-'Very Good',0<-'Premium',0<-'Ideal')
+df$good <- memisc::recode(df$cut,0<-'Fair',1<-'Good',0<-'Very Good',0<-'Premium',0<-'Ideal')
+df$very_good <- memisc::recode(df$cut,0<-'Fair',0<-'Good',1<-'Very Good',0<-'Premium',0<-'Ideal')
+df$premium <- memisc::recode(df$cut,0<-'Fair',0<-'Good',0<-'Very Good',1<-'Premium',0<-'Ideal')
+
+model_3=lm(data=df,price~carat+depth+fair+good+very_good+premium)
+
+summary(model_3)
+mtable(model_3)
+
+qplot(data=df,price)
+qplot(data=df,log(price))
+g1<-qplot(data=df,log(price),fill=premium, alpha=0.5)
+
+
+model_new=lm(data=df,price~carat)
+model_new1=lm(data=df,price~carat+depth)
+model_new2=lm(data=df,price~carat+depth+fair+good+very_good+premium)
+summary(model_new2)
+
+waldtest(model_new,model_new1)
+waldtest(model_new,model_new2)
+
+mtable(model_new,model_new1,model_new2)
+
+md=lm(data=df,price~carat)
+md1=lm(data=df,price~carat+depth)
+
+mtable(md,md1)
+
+summary(md)
+
+resettest(md1) 
+
+qplot(data=df,log(price), fill=cut,geom='density',alpha=0.5) + facet_grid(~cut)
+qplot(data=df,log(price), fill=cut,geom='density',alpha=0.5)
+
+qplot(data=df,log(carat),log(price),color=clarity)+facet_wrap(~cut)
+help(diamonds)
+
+
+model_t=lm(data=df,price~carat+depth)
+mtable(model_t)
+
+help(diamonds)
+
+qplot(data=df,log(price),fill=color,geom="density", alpha=0.5)+facet_grid(~color)
+qplot(data=df,log(price),fill=color,geom="density", alpha=0.5)+facet_wrap(~color)
+
+
+price(df$clarity="IF")
+?diamonds
+
+
+aggregate(df[,7],list(df$clarity),mean)
