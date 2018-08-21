@@ -1,0 +1,120 @@
+# if you see KRAKOZYABRY then do 
+# "File" - "Reopen with encoding" - "UTF-8" - (Set as default) - OK
+
+# lab 2
+
+# загружаем пакеты
+library("memisc") # две и более регрессий в одной табличке
+library("dplyr") # манипуляции с данными
+library("psych") # описательные статистики
+
+library("lmtest") # тестирование гипотез в линейных моделях
+library("sjPlot") # графики
+library("sgof")
+library("ggplot2") # графики
+library("foreign") # загрузка данных в разных форматах
+library("car")
+library("hexbin") # графики
+library("rlms") # загрузка данных в формате rlms (spss)
+
+# генерируем случайные величины
+# z_1,...,z_100 ~ N(5,9)
+
+z<-rnorm(100,mean=5,sd = 3)
+
+z[56]
+z[1]
+z[2:9]
+qplot(z)
+
+# построим функцию плотности
+x<-seq(-10,15,by = 0.5)
+y<-dnorm(x,mean = 5,sd = 3)
+
+qplot(x,y)
+qplot(x,y,geom="line") # continuous density function, quickplot
+
+# P(Z<3)
+# P(Z<3)=F(3) 
+
+pnorm(3, mean = 5,sd = 3)
+
+# P(Z \ in [4;9])
+# P(Z<9) - P(Z<4)
+pnorm(9,mean = 5,sd = 3)-pnorm(4,mean = 5,sd = 3)
+
+# P(Z<a)=0.7 a?
+qnorm(0.7, mean = 5, sd = 3)
+# sleva ot 6.57 plowad' pod gragikom ravna 0.7
+
+# chisq, t, f
+# rchisq, dchisq (funkciya plotnosti), pchisq (f raspredeleniya), qchisq  - 
+# rt (generiruet funk raspred), dt, pt, qt (kvantilnaya f-ya)
+
+
+
+# Множе-ая регрессия, проверка гипотез
+
+h<-swiss
+glimpse(h)
+help(swiss)
+
+model<-lm(data=h, Fertility~Catholic+Agriculture+Examination)
+summary(model)
+
+coeftest(model)
+coefficients(model)
+summary(model)
+
+confint(model)
+sjp.lm(model)  # vizualno vidny ocenki i doveritelnye intervaly
+
+
+# проверка гипотезы b_Cath=b_Agri
+
+model_aux<-lm(data=h,Fertility~Catholic+I(Catholic+Agriculture)+Examination)
+# I means to literally add; fertility=alpha + (Bc-Ba)*Catholic+Ba*(Agriculture+Catholic)+error
+# Test the hypothesis that Ba=Bc
+
+summary(model_aux)
+
+linearHypothesis(model,"Catholic-Agriculture=0")
+
+
+#станд-ные коэф-ы
+h_st<-mutate_each(h,"scale")
+glimpse(h_st)
+model_st<-lm(data=h_st,Fertility~Catholic+Agriculture+Examination)
+summary(model_st)
+
+
+# искусственный эксперимент
+
+D<-matrix(nrow=100, rnorm(100*41,mean = 0,sd=1))
+df<-data.frame(D) # превращаем сгенирированные числа в набор данных
+glimpse(df)
+
+model_pusto<-lm(data=df,X1~.)
+summary(model_pusto)
+
+
+model2<-lm(data=h, Fertility~Catholic+Agriculture)
+compar_12<-mtable(model,model2)
+compar_12
+
+
+# setwd("C:/metrics/lab_02")
+stuff<-list(data=h,model=model2)
+saveRDS(file="mydata.RDS",stuff)
+
+mylist<-readRDS("mydata.RDS")
+summary(mylist$model)
+
+#CSV. comma separated values
+t<-read.csv("flats_moscow.txt")
+glimpse(t)
+
+t<-read.csv("flats_moscow.txt",sep="\t",dec=".",header=TRUE)
+glimpse(t)
+mod_3<-lm(data=t,price~totsp+brick)
+summary(mod_3)
