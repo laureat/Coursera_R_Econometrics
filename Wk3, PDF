@@ -1,0 +1,53 @@
+---
+title: "Нано исследование"
+output: word_document
+lang: russian
+---
+
+В этом исследование мы рассмотрим цена на квартире в Москве.
+
+```{r, include=FALSE}
+library("memisc") # две и более регрессий в одной табличке
+library("dplyr") # манипуляции с данными
+library("psych") # описательные статистики
+library("lmtest") # тестирование гипотез в линейных моделях
+library("sjPlot") # графики
+library("sgof")
+library("vcd")
+library("grid")
+library("ggplot2") # графики
+library("foreign") # загрузка данных в разных форматах
+library("car")
+library("hexbin") # графики
+library("rlms") # загрузка данных в формате rlms (spss)
+
+library("devtools")
+library("pander")
+library("knitr")
+
+f<-read.csv("flats_moscow.txt",sep='\t', header = TRUE, dec=".")
+opts_chunk$set(echo=FALSE, message = FALSE)
+
+```
+
+В нашем наборе данных `r nrow(f)` наблюдений. Средняя цена квартиры равна `r mean(f$price)` тысяч у.е.
+
+Красивый график:
+
+```{r}
+f<- mutate_each(f,"factor",walk,brick,floor,code)
+qplot(data=f,log(price), fill=brick, position = "dodge")
+
+```
+
+
+Оценим и сравним три модели:
+```{r,results='asis'}
+model_0<-lm(data=f,log(price)~log(totsp))
+model_1<-lm(data=f,log(price)~log(totsp)+brick)
+model_2<-lm(data=f,log(price)~log(totsp)+brick+brick:log(totsp))
+
+pander(mtable(model_0,model_1,model_2))
+```
+
+У нас лучше оказалась модель 2.
